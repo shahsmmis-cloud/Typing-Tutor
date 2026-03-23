@@ -1,0 +1,878 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Falling Letters Typing Game (Lives + Sounds + Levels)</title>
+  <style>
+    :root{
+      --bg1:#0ea5e9;
+      --bg2:#6366f1;
+      --ink:#0f172a;
+      --good:#16a34a;
+      --bad:#ef4444;
+      --shadow: 0 18px 40px rgba(0,0,0,.22);
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      background: radial-gradient(1200px 600px at 20% 10%, rgba(255,255,255,.25), transparent 60%),
+                  linear-gradient(135deg, var(--bg1), var(--bg2));
+      color:#fff;
+      display:flex;
+      min-height:100vh;
+      align-items:center;
+      justify-content:center;
+      padding:18px;
+    }
+    .wrap{
+      width:min(980px, 100%);
+      background: rgba(255,255,255,.12);
+      border:1px solid rgba(255,255,255,.25);
+      border-radius:20px;
+      padding:16px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(8px);
+    }
+    .top{
+      display:flex;
+      gap:14px;
+      flex-wrap:wrap;
+      align-items:center;
+      justify-content:space-between;
+      margin-bottom:10px;
+    }
+    .brand{display:flex; gap:10px; align-items:center;}
+    .badge{
+      width:42px;height:42px; border-radius:14px;
+      background: rgba(255,255,255,.22);
+      border:1px solid rgba(255,255,255,.35);
+      display:grid; place-items:center;
+      font-size:22px; user-select:none;
+    }
+    h1{margin:0; font-size:20px; letter-spacing:.2px;}
+    .sub{opacity:.9; font-size:13px; margin-top:2px;}
+
+    .panelRow{display:flex; gap:10px; flex-wrap:wrap; justify-content:flex-end;}
+    .pill{
+      background: rgba(255,255,255,.18);
+      border:1px solid rgba(255,255,255,.28);
+      border-radius:999px;
+      padding:10px 12px;
+      color:#fff;
+      display:flex;
+      gap:10px;
+      align-items:center;
+      user-select:none;
+      font-variant-numeric: tabular-nums;
+    }
+    .pill b{font-variant-numeric: tabular-nums;}
+
+    .controls{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+      justify-content:space-between;
+      margin:10px 0 12px;
+    }
+    .leftControls{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+    }
+    .sliderWrap{
+      display:flex;
+      gap:10px;
+      align-items:center;
+      flex-wrap:wrap;
+      user-select:none;
+    }
+    input[type="range"]{ width:180px; }
+
+    .toggle{
+      display:flex;
+      gap:8px;
+      align-items:center;
+      background: rgba(255,255,255,.18);
+      border:1px solid rgba(255,255,255,.28);
+      border-radius:999px;
+      padding:10px 12px;
+      user-select:none;
+    }
+    .toggle input{ transform: scale(1.2); }
+
+    .btns{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+      justify-content:flex-end;
+    }
+    button{
+      border:none;
+      border-radius:12px;
+      padding:10px 14px;
+      font-weight:800;
+      cursor:pointer;
+      box-shadow: 0 10px 18px rgba(0,0,0,.12);
+    }
+    .primary{ background:#22c55e; color:#052e16; }
+    .secondary{ background:#e2e8f0; color:#0f172a; }
+    .danger{ background:#ef4444; color:#fff; }
+    button:active{ transform: translateY(1px); }
+
+    .card{
+      background: rgba(255,255,255,.92);
+      border-radius:18px;
+      padding:12px;
+      box-shadow: 0 10px 25px rgba(0,0,0,.12);
+      width:100%;
+    }
+    canvas{
+      width:100%;
+      height:auto;
+      display:block;
+      border-radius:14px;
+      background:
+        radial-gradient(900px 500px at 40% 20%, rgba(255,255,255,.22), transparent 65%),
+        linear-gradient(180deg, #0b1025, #0a1635);
+      border:1px solid rgba(255,255,255,.18);
+    }
+
+    .bottom{
+      display:grid;
+      gap:10px;
+      margin-top:12px;
+    }
+    .help{
+      display:flex;
+      gap:10px;
+      align-items:flex-start;
+      flex-wrap:wrap;
+      font-size:13px;
+      line-height:1.4;
+      color:#fff;
+    }
+    .help .tip{
+      background: rgba(255,255,255,.16);
+      border:1px solid rgba(255,255,255,.26);
+      border-radius:14px;
+      padding:10px 12px;
+      flex: 1 1 320px;
+    }
+
+    .keyboard{
+      background: rgba(255,255,255,.92);
+      border-radius:18px;
+      padding:12px;
+      box-shadow: 0 10px 25px rgba(0,0,0,.12);
+      color:#0f172a;
+    }
+    .row{
+      display:flex;
+      gap:8px;
+      justify-content:center;
+      margin:6px 0;
+      flex-wrap:wrap;
+    }
+    .key{
+      width:44px;
+      height:44px;
+      border-radius:12px;
+      border: 2px solid #dbeafe;
+      background: #f8fafc;
+      color:#0f172a;
+      font-weight:900;
+      font-size:16px;
+      display:grid;
+      place-items:center;
+      box-shadow: 0 4px 10px rgba(0,0,0,.08);
+      user-select:none;
+      transition: transform .05s ease, background .15s ease, border-color .15s ease, opacity .2s ease;
+    }
+    .key.pressed{ transform: translateY(2px) scale(.98); background:#dbeafe; border-color:#60a5fa; }
+    .key.hit{ background:#dcfce7; border-color:#22c55e; }
+    .key.miss{ background:#fee2e2; border-color:#ef4444; }
+    .key.locked{ opacity:.35; }
+
+    .overlay{
+      position:fixed; inset:0;
+      background: rgba(0,0,0,.55);
+      display:none; place-items:center;
+      padding:18px;
+    }
+    .modal{
+      width:min(520px, 100%);
+      background: #fff;
+      border-radius:18px;
+      padding:18px;
+      box-shadow: var(--shadow);
+      text-align:center;
+      color:#0f172a;
+    }
+    .modal h2{ margin:0 0 8px; }
+    .modal p{ margin:6px 0; color:#334155; }
+    .bigScore{ font-size:42px; font-weight:900; margin:10px 0; }
+    .small{ color:#64748b; font-size:13px; }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <div class="top">
+      <div class="brand">
+        <div class="badge">🚀</div>
+        <div>
+          <h1>Falling Letters</h1>
+          <div class="sub">Press the matching key to shoot it before it reaches the ground.</div>
+        </div>
+      </div>
+
+      <div class="panelRow">
+        <div class="pill">❤️ Lives: <b id="lives">3</b></div>
+        <div class="pill">🧠 Level: <b id="level">1</b></div>
+        <div class="pill">⭐ Score: <b id="score">0</b></div>
+        <div class="pill">🎯 Hits: <b id="hits">0</b></div>
+        <div class="pill">❌ Misses: <b id="misses">0</b></div>
+        <div class="pill">⏱️ Time: <b id="time">0</b>s</div>
+      </div>
+    </div>
+
+    <div class="controls">
+      <div class="leftControls">
+        <div class="sliderWrap">
+          <span>Difficulty:</span>
+          <input id="difficulty" type="range" min="1" max="10" value="4" />
+          <b id="diffLabel">4</b>
+          <span style="opacity:.9;">(higher = faster & more letters)</span>
+        </div>
+
+        <label class="toggle" title="Turn sound effects on/off">
+          🔊 Sounds
+          <input id="sounds" type="checkbox" checked />
+        </label>
+
+        <label class="toggle" title="Start with home-row letters and unlock more as you score">
+          🏁 Auto‑Unlock
+          <input id="unlock" type="checkbox" checked />
+        </label>
+      </div>
+
+      <div class="btns">
+        <button class="secondary" id="pauseBtn">⏸ Pause</button>
+        <button class="primary" id="startBtn">▶ Start</button>
+        <button class="danger" id="restartBtn">🔄 Restart</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <canvas id="game" width="900" height="460"></canvas>
+    </div>
+
+    <div class="bottom">
+      <div class="help">
+        <div class="tip">✅ <b>How to play:</b> Letters fall down. Press the same letter to <b>shoot</b> it!</div>
+        <div class="tip">❤️ <b>Lives:</b> You start with <b>3 lives</b>. If a letter hits the ground, you lose one life.</div>
+        <div class="tip">🏁 <b>Auto‑Unlock:</b> Starts with <b>home row</b>. As score grows, more keys unlock.</div>
+      </div>
+
+      <div class="keyboard" id="keyboard">
+        <div class="row" id="row1"></div>
+        <div class="row" id="row2"></div>
+        <div class="row" id="row3"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="overlay" id="overlay">
+    <div class="modal">
+      <h2 id="endTitle">Game Over!</h2>
+      <p id="endReason">You ran out of lives.</p>
+      <div class="bigScore" id="finalScore">Score: 0</div>
+      <p class="small" id="endStats"></p>
+      <div class="btns" style="justify-content:center; margin-top:12px;">
+        <button class="primary" id="playAgain">▶ Play Again</button>
+        <button class="secondary" id="closeModal">Close</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+(() => {
+  // ---------- On-screen keyboard ----------
+  const layout = [
+    ["Q","W","E","R","T","Y","U","I","O","P"],
+    ["A","S","D","F","G","H","J","K","L"],
+    ["Z","X","C","V","B","N","M"]
+  ];
+  const keyEls = new Map();
+  function makeKey(k){
+    const d = document.createElement("div");
+    d.className = "key";
+    d.textContent = k;
+    d.dataset.key = k;
+    keyEls.set(k, d);
+    return d;
+  }
+  const row1 = document.getElementById("row1");
+  const row2 = document.getElementById("row2");
+  const row3 = document.getElementById("row3");
+  layout[0].forEach(k => row1.appendChild(makeKey(k)));
+  layout[1].forEach(k => row2.appendChild(makeKey(k)));
+  layout[2].forEach(k => row3.appendChild(makeKey(k)));
+
+  // ---------- Game elements ----------
+  const canvas = document.getElementById("game");
+  const ctx = canvas.getContext("2d");
+
+  const scoreEl = document.getElementById("score");
+  const hitsEl = document.getElementById("hits");
+  const missesEl = document.getElementById("misses");
+  const timeEl = document.getElementById("time");
+  const livesEl = document.getElementById("lives");
+  const levelEl = document.getElementById("level");
+
+  const startBtn = document.getElementById("startBtn");
+  const pauseBtn = document.getElementById("pauseBtn");
+  const restartBtn = document.getElementById("restartBtn");
+
+  const difficulty = document.getElementById("difficulty");
+  const diffLabel = document.getElementById("diffLabel");
+  const soundsToggle = document.getElementById("sounds");
+  const unlockToggle = document.getElementById("unlock");
+
+  const overlay = document.getElementById("overlay");
+  const finalScore = document.getElementById("finalScore");
+  const endStats = document.getElementById("endStats");
+  const endReason = document.getElementById("endReason");
+  const playAgain = document.getElementById("playAgain");
+  const closeModal = document.getElementById("closeModal");
+
+  diffLabel.textContent = difficulty.value;
+  difficulty.addEventListener("input", () => diffLabel.textContent = difficulty.value);
+
+  // Entities
+  let letters = []; // {ch,x,y,v,r,phase,wobble,color}
+  let bullets = []; // {x,y,vx,vy,life,color}
+  let pops = [];    // {x,y,vx,vy,life,color}
+
+  // State
+  let running = false;
+  let paused = false;
+  let gameOver = false;
+
+  let score = 0, hits = 0, misses = 0;
+  let lives = 3;
+  let level = 1;
+
+  let startTime = 0;
+  let elapsedSec = 0;
+
+  let last = 0;
+  let spawnTimer = 0;
+
+  const rand = (a,b) => a + Math.random()*(b-a);
+  const pick = (arr) => arr[(Math.random()*arr.length)|0];
+
+  // ---------- Letter sets (Quick Tweak #1) ----------
+  const HOME_ROW = "ASDFGHJKL".split("");
+  const TOP_ROW  = "QWERTYUIOP".split("");
+  const BOT_ROW  = "ZXCVBNM".split("");
+
+  function computeLevelFromScore(s){
+    // simple unlock ladder
+    if(!unlockToggle.checked) return 3;       // all keys allowed
+    if(s < 120) return 1;                     // home row
+    if(s < 300) return 2;                     // home + top row
+    return 3;                                  // full alphabet
+  }
+
+  function allowedLetters(){
+    level = computeLevelFromScore(score);
+    levelEl.textContent = level;
+
+    if(level === 1) return HOME_ROW;
+    if(level === 2) return HOME_ROW.concat(TOP_ROW);
+    return HOME_ROW.concat(TOP_ROW, BOT_ROW);
+  }
+
+  function refreshKeyboardLock(){
+    const allowed = new Set(allowedLetters());
+    for(const [k, el] of keyEls){
+      el.classList.toggle("locked", !allowed.has(k));
+    }
+  }
+
+  // ---------- Sounds (Quick Tweak #2) ----------
+  // WebAudio beeps (no external files). Start AudioContext on first user gesture.
+  let audioCtx = null;
+
+  function ensureAudio(){
+    if(!soundsToggle.checked) return;
+    if(audioCtx) return;
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if(!AC) return;
+    audioCtx = new AC();
+  }
+
+  function beep({type="sine", freq=440, dur=0.08, gain=0.07, slideTo=null}){
+    if(!soundsToggle.checked) return;
+    ensureAudio();
+    if(!audioCtx) return;
+
+    const t0 = audioCtx.currentTime;
+    const osc = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    osc.type = type;
+    osc.frequency.setValueAtTime(freq, t0);
+    if(slideTo){
+      osc.frequency.exponentialRampToValueAtTime(slideTo, t0 + dur);
+    }
+    g.gain.setValueAtTime(0.0001, t0);
+    g.gain.exponentialRampToValueAtTime(gain, t0 + 0.01);
+    g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+
+    osc.connect(g);
+    g.connect(audioCtx.destination);
+    osc.start(t0);
+    osc.stop(t0 + dur + 0.02);
+  }
+
+  const sfx = {
+    pew(){ beep({type:"square", freq:720, slideTo:360, dur:0.07, gain:0.06}); },
+    pop(){ beep({type:"triangle", freq:520, slideTo:820, dur:0.06, gain:0.05}); },
+    miss(){ beep({type:"sawtooth", freq:220, slideTo:140, dur:0.10, gain:0.05}); },
+    lifeLost(){
+      beep({type:"sawtooth", freq:260, slideTo:120, dur:0.16, gain:0.06});
+      setTimeout(()=>beep({type:"sine", freq:120, dur:0.12, gain:0.05}), 60);
+    },
+    gameOver(){
+      beep({type:"sawtooth", freq:300, slideTo:90, dur:0.35, gain:0.07});
+    }
+  };
+
+  // ---------- Ground ----------
+  const groundY = () => canvas.height - 34;
+
+  // ---------- UI updates ----------
+  function updateUI(){
+    scoreEl.textContent = score;
+    hitsEl.textContent = hits;
+    missesEl.textContent = misses;
+    livesEl.textContent = lives;
+    elapsedSec = Math.floor((performance.now() - startTime) / 1000);
+    timeEl.textContent = elapsedSec;
+    refreshKeyboardLock();
+  }
+
+  // ---------- Reset & control ----------
+  function resetAll(){
+    letters = [];
+    bullets = [];
+    pops = [];
+    score = hits = misses = 0;
+    lives = 3;
+    level = 1;
+    spawnTimer = 0;
+    last = 0;
+    startTime = performance.now();
+    gameOver = false;
+    overlay.style.display = "none";
+    updateUI();
+  }
+
+  function startGame(){
+    ensureAudio();
+    if(!running){
+      running = true;
+      paused = false;
+      pauseBtn.textContent = "⏸ Pause";
+      resetAll();
+      requestAnimationFrame(loop);
+    } else if (gameOver){
+      resetAll();
+      paused = false;
+      requestAnimationFrame(loop);
+    } else {
+      paused = false;
+      pauseBtn.textContent = "⏸ Pause";
+      requestAnimationFrame(loop);
+    }
+  }
+
+  function togglePause(){
+    ensureAudio();
+    if(!running || gameOver) return;
+    paused = !paused;
+    pauseBtn.textContent = paused ? "▶ Resume" : "⏸ Pause";
+    if(!paused) requestAnimationFrame(loop);
+  }
+
+  function endGame(reason){
+    gameOver = true;
+    paused = true;
+    sfx.gameOver();
+
+    finalScore.textContent = `Score: ${score}`;
+    endReason.textContent = reason;
+    endStats.textContent = `Hits: ${hits} • Misses: ${misses} • Time: ${elapsedSec}s`;
+    overlay.style.display = "grid";
+  }
+
+  // ---------- Convert key -> canvas coords ----------
+  function keyCenterOnCanvas(letter){
+    const el = keyEls.get(letter);
+    if(!el) return {x: canvas.width/2, y: canvas.height - 10};
+
+    const keyRect = el.getBoundingClientRect();
+    const canvRect = canvas.getBoundingClientRect();
+    const cx = keyRect.left + keyRect.width/2;
+    const cy = keyRect.top  + keyRect.height/2;
+
+    return {
+      x: (cx - canvRect.left) * (canvas.width / canvRect.width),
+      y: (cy - canvRect.top)  * (canvas.height / canvRect.height),
+    };
+  }
+
+  // ---------- Spawn / fire ----------
+  function spawnLetter(){
+    const d = Number(difficulty.value);
+    const allowed = allowedLetters();
+    const ch = pick(allowed);
+
+    const r = 18;
+    const x = rand(r+10, canvas.width - r - 10);
+    const y = -30;
+
+    const base = 55 + d*10;
+    const v = rand(base, base + 45);
+
+    const colors = ["#60a5fa","#a78bfa","#34d399","#fbbf24","#fb7185"];
+    letters.push({
+      ch, x, y, v, r,
+      wobble: rand(.6, 1.4),
+      phase: rand(0, Math.PI*2),
+      color: pick(colors)
+    });
+  }
+
+  function burst(x,y,color){
+    for(let i=0;i<14;i++){
+      const a = rand(0, Math.PI*2);
+      const sp = rand(80, 240);
+      pops.push({x, y, vx:Math.cos(a)*sp, vy:Math.sin(a)*sp, life: rand(0.35, 0.65), color});
+    }
+  }
+
+  function fireAtLetter(ch){
+    if(gameOver || paused) return;
+
+    const allowed = new Set(allowedLetters());
+    const keyEl = keyEls.get(ch);
+
+    // Visual pressed feedback
+    if(keyEl){
+      keyEl.classList.add("pressed");
+      setTimeout(()=>keyEl.classList.remove("pressed"), 80);
+    }
+
+    // If locked key in auto-unlock mode, treat like miss (kid-friendly)
+    if(!allowed.has(ch)){
+      misses++; updateUI();
+      if(keyEl){
+        keyEl.classList.add("miss");
+        setTimeout(()=>keyEl.classList.remove("miss"), 180);
+      }
+      sfx.miss();
+      return;
+    }
+
+    // Find matching letter closest to ground
+    let idx = -1, bestY = -Infinity;
+    for(let i=0;i<letters.length;i++){
+      if(letters[i].ch === ch && letters[i].y > bestY){
+        bestY = letters[i].y;
+        idx = i;
+      }
+    }
+
+    const kpos = keyCenterOnCanvas(ch);
+
+    if(idx === -1){
+      // No target to shoot
+      misses++; updateUI();
+      if(keyEl){
+        keyEl.classList.add("miss");
+        setTimeout(()=>keyEl.classList.remove("miss"), 180);
+      }
+      sfx.miss();
+
+      bullets.push({ x:kpos.x, y:kpos.y, vx: rand(-40, 40), vy:-520, life:0.7, color:"#fca5a5" });
+      return;
+    }
+
+    // Shoot toward the target
+    const target = letters[idx];
+    const dx = target.x - kpos.x;
+    const dy = target.y - kpos.y;
+    const len = Math.hypot(dx,dy) || 1;
+    const speed = 820;
+
+    bullets.push({
+      x:kpos.x, y:kpos.y,
+      vx:(dx/len)*speed, vy:(dy/len)*speed,
+      life:0.55,
+      color:"#86efac"
+    });
+
+    // Register hit instantly (kid-friendly)
+    hits++;
+    score += 10 + Math.floor(Number(difficulty.value) * 2);
+    updateUI();
+
+    if(keyEl){
+      keyEl.classList.add("hit");
+      setTimeout(()=>keyEl.classList.remove("hit"), 180);
+    }
+
+    sfx.pew();
+    sfx.pop();
+    burst(target.x, target.y, target.color);
+
+    letters.splice(idx, 1);
+  }
+
+  // ---------- Lives behavior (Quick Tweak #3) ----------
+  function loseLife(badLetter){
+    lives--;
+    updateUI();
+    sfx.lifeLost();
+
+    // Little red flash
+    ctx.save();
+    ctx.fillStyle = "rgba(239,68,68,.18)";
+    ctx.fillRect(0,0,canvas.width,canvas.height);
+    ctx.restore();
+
+    if(lives <= 0){
+      endGame(`You ran out of lives. The letter "${badLetter}" reached the ground.`);
+    }
+  }
+
+  // ---------- Input ----------
+  window.addEventListener("keydown", (e) => {
+    if(!running) return;
+    if(e.key === "Escape"){ togglePause(); return; }
+    const k = e.key.toUpperCase();
+    if(k.length === 1 && k >= "A" && k <= "Z"){
+      ensureAudio();
+      fireAtLetter(k);
+    }
+  });
+
+  // ---------- Drawing ----------
+  function drawBackground(){
+    // stars
+    ctx.save();
+    ctx.globalAlpha = 0.7;
+    for(let i=0;i<40;i++){
+      const x = (i*211) % canvas.width;
+      const y = (i*97) % canvas.height;
+      const r = (i%3)+1;
+      ctx.fillStyle = "rgba(255,255,255,.35)";
+      ctx.beginPath();
+      ctx.arc(x, y, r*.4, 0, Math.PI*2);
+      ctx.fill();
+    }
+    ctx.restore();
+
+    // ground line
+    ctx.save();
+    ctx.strokeStyle = "rgba(255,255,255,.35)";
+    ctx.lineWidth = 3;
+    ctx.setLineDash([10,10]);
+    ctx.beginPath();
+    ctx.moveTo(14, groundY());
+    ctx.lineTo(canvas.width-14, groundY());
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    ctx.fillStyle = "rgba(255,255,255,.75)";
+    ctx.font = "700 12px system-ui, sans-serif";
+    ctx.fillText("GROUND (letters here cost a life!)", 18, groundY()-10);
+    ctx.restore();
+  }
+
+  function drawLetters(){
+    for(const L of letters){
+      ctx.save();
+      ctx.shadowColor = "rgba(0,0,0,.3)";
+      ctx.shadowBlur = 12;
+      ctx.fillStyle = "rgba(255,255,255,.12)";
+      ctx.beginPath();
+      ctx.arc(L.x, L.y, L.r+10, 0, Math.PI*2);
+      ctx.fill();
+      ctx.restore();
+
+      ctx.save();
+      ctx.fillStyle = L.color;
+      ctx.beginPath();
+      ctx.arc(L.x, L.y, L.r+2, 0, Math.PI*2);
+      ctx.fill();
+
+      ctx.fillStyle = "#0b1025";
+      ctx.font = "900 22px system-ui, sans-serif";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(L.ch, L.x, L.y+1);
+      ctx.restore();
+    }
+  }
+
+  function drawBullets(dt){
+    for(const b of bullets){
+      ctx.save();
+      ctx.strokeStyle = b.color;
+      ctx.lineWidth = 4;
+      ctx.lineCap = "round";
+      ctx.globalAlpha = Math.max(0, b.life * 1.6);
+      ctx.beginPath();
+      ctx.moveTo(b.x, b.y);
+      ctx.lineTo(b.x - b.vx*dt*0.03, b.y - b.vy*dt*0.03);
+      ctx.stroke();
+
+      ctx.fillStyle = b.color;
+      ctx.beginPath();
+      ctx.arc(b.x, b.y, 4.5, 0, Math.PI*2);
+      ctx.fill();
+      ctx.restore();
+    }
+  }
+
+  function drawPops(){
+    for(const p of pops){
+      ctx.save();
+      ctx.globalAlpha = Math.max(0, p.life*1.7);
+      ctx.fillStyle = p.color;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, 3, 0, Math.PI*2);
+      ctx.fill();
+      ctx.restore();
+    }
+  }
+
+  function drawPauseOverlay(){
+    ctx.save();
+    ctx.fillStyle = "rgba(0,0,0,.35)";
+    ctx.fillRect(0,0,canvas.width,canvas.height);
+    ctx.fillStyle = "#fff";
+    ctx.font = "900 36px system-ui, sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText("PAUSED", canvas.width/2, canvas.height/2 - 8);
+    ctx.font = "600 16px system-ui, sans-serif";
+    ctx.fillText("Press ESC or click Resume", canvas.width/2, canvas.height/2 + 24);
+    ctx.restore();
+  }
+
+  // ---------- Loop ----------
+  function loop(t){
+    if(!running) return;
+
+    if(paused){
+      drawFrame(0);
+      drawPauseOverlay();
+      return;
+    }
+
+    const dt = Math.min(0.033, (t - (last || t)) / 1000);
+    last = t;
+
+    // update time + locks
+    updateUI();
+
+    // spawn logic
+    const d = Number(difficulty.value);
+    const spawnEvery = Math.max(0.35, 1.15 - d*0.08);
+    spawnTimer += dt;
+    while(spawnTimer >= spawnEvery){
+      spawnTimer -= spawnEvery;
+      spawnLetter();
+      if(d >= 7 && Math.random() < 0.35) spawnLetter();
+      if(d >= 9 && Math.random() < 0.25) spawnLetter();
+    }
+
+    // move letters
+    for(let i=letters.length-1; i>=0; i--){
+      const L = letters[i];
+      L.phase += dt * L.wobble;
+      L.x += Math.sin(L.phase) * (12 + d*1.5) * dt;
+      L.y += L.v * dt;
+
+      L.x = Math.max(L.r+8, Math.min(canvas.width - L.r - 8, L.x));
+
+      // ground hit -> lose life and remove letter
+      if(L.y + L.r >= groundY()){
+        burst(L.x, L.y, "#ef4444");
+        const ch = L.ch;
+        letters.splice(i, 1);
+        loseLife(ch);
+        if(gameOver) { drawFrame(dt); return; }
+      }
+    }
+
+    // bullets
+    for(const b of bullets){
+      b.x += b.vx * dt;
+      b.y += b.vy * dt;
+      b.life -= dt;
+    }
+    bullets = bullets.filter(b => b.life > 0);
+
+    // pops
+    for(const p of pops){
+      p.x += p.vx * dt;
+      p.y += p.vy * dt;
+      p.vx *= (1 - dt*2.2);
+      p.vy *= (1 - dt*2.2);
+      p.life -= dt;
+    }
+    pops = pops.filter(p => p.life > 0);
+
+    drawFrame(dt);
+    requestAnimationFrame(loop);
+  }
+
+  function drawFrame(dt){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    drawBackground();
+    drawLetters();
+    drawBullets(dt);
+    drawPops();
+  }
+
+  // Buttons
+  startBtn.addEventListener("click", startGame);
+  pauseBtn.addEventListener("click", togglePause);
+  restartBtn.addEventListener("click", () => { ensureAudio(); running = true; paused = false; resetAll(); requestAnimationFrame(loop); });
+
+  playAgain.addEventListener("click", () => { ensureAudio(); overlay.style.display="none"; running = true; paused = false; resetAll(); requestAnimationFrame(loop); });
+  closeModal.addEventListener("click", () => overlay.style.display="none");
+
+  // Update locks when toggles change
+  unlockToggle.addEventListener("change", () => { refreshKeyboardLock(); });
+  difficulty.addEventListener("change", () => { refreshKeyboardLock(); });
+
+  // Preview (paused)
+  running = true;
+  paused = true;
+  resetAll();
+  drawFrame(0);
+  drawPauseOverlay();
+})();
+</script>
+</body>
+</html>
